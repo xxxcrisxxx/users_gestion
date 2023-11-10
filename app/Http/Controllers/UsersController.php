@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AditionalData;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -29,11 +30,34 @@ class UsersController extends Controller
         return "Usuarios importados correctamente.";
     }
 
-    public function index(){
+    public function index()
+    {
         //consultar los datos de usuarios
         $users = User::with('aditionalData')->get();
         //dd($users);
-        return view('dashboard.users.index',compact('users'));
+        return view('dashboard.users.index', compact('users'));
     }
 
+    public function update(Request $request, $id)
+    {
+
+        $validatedData = $request->validate([
+            'user_id' => 'required|integer',
+            'number_phone' => 'required|nullable|integer',
+            'birth_date' => 'required|nullable|date',
+            'civil_status' => 'required|nullable',
+            'children' => 'required|nullable',
+            'observations' => 'required|nullable',
+        ]);
+
+        //manejo de excepciones con try catch
+        try {
+            $updateData = AditionalData::updateOrCreate(['user_id' => $validatedData['user_id']], $validatedData);
+            if ($updateData) {
+                return response()->json("Usuario actualizado");
+            }
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
+    }
 }
